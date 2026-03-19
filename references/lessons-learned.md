@@ -13,9 +13,9 @@ The data source you *think* resolves a market may not be the actual one. Example
 **Rule:** Before trading, verify the exact resolution source and methodology. Read the market rules.
 
 ## 3. Liquidity Check Before Every Order
-No bid depth = can't exit. You might buy in at 35¢ and find zero bids when you need to sell. Check the orderbook *before* placing any order, and again before any exit.
+Check the right side of the book: **buying → check asks** (what you'll pay), **selling → check bids** (what you'll receive). You might buy in against thin asks and overpay, then find zero bids when you need to exit.
 
-**Rule:** `bidDepth < $10` → skip. Period.
+**Rule:** Check orderbook depth on both sides before any order. Depth < $10 on the side you're hitting → skip. Period.
 
 ## 4. Portfolio Hard Caps Are Mandatory
 Without hard caps, one "sure thing" turns into your entire portfolio. Budget discipline prevents ruin.
@@ -32,10 +32,10 @@ Markets move, and your edge can disappear between entry and resolution. A foreca
 
 **Rule:** Continuously monitor the data source that drives your edge. If it drifts outside your position, exit.
 
-## 7. Entry Timing Matters
-Earlier entry = more time for forecasts to drift. Closer to resolution = less drift risk but potentially less edge (market has priced in more data).
+## 7. Entry Timing Depends on Market Type
+Optimal entry timing varies by market. Weather markets favor 12-24h before resolution (less forecast drift). Political markets may reward earlier entry when polls shift. Sports markets move fastest close to game time. Crypto markets can have edge at any horizon.
 
-**Rule:** Balance edge size vs time-to-resolution. For weather markets, 12-24h before resolution is the sweet spot.
+**Rule:** Match entry timing to your market's information cycle. Earlier entry = more drift risk but potentially larger edge. Closer to resolution = less drift but thinner edge. There is no universal "closer is better" — it depends on how your data source updates.
 
 ## 8. Spread Check
 Wide spreads eat your edge. If the spread is 4¢ on a 10% edge, you're giving away 40% of your edge to cross the spread.
