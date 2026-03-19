@@ -64,3 +64,44 @@ For ranged markets (weather, numbers), buying adjacent buckets reduces downside.
 Airport temperatures differ from city center. Weather stations at airports (which is what most data sources report) can differ by 1-3°C from downtown. If the market resolves based on a specific station, know which one.
 
 **Rule:** Identify the exact measurement station. Map it. Understand its microclimate biases.
+
+## 13. Boundary-Hunting: The Structural Edge in Bucket Markets
+
+The biggest systematic mispricing in prediction markets with discrete buckets isn't about picking the right bucket — it's about **finding markets where the forecast lands near a bucket boundary**.
+
+### Why Boundaries Create Edge
+
+Markets psychologically over-concentrate probability on the forecast-favored bucket. But forecast error is continuous (roughly normal, σ≈1-2 units). When the forecast sits at a bucket boundary, adjacent buckets have nearly equal true probability — but the market won't price them that way.
+
+**Example:** TWC forecast = 54°F (boundary of 52-53 / 54-55 buckets), σ≈1°F:
+- P(54-55) ≈ 48%, P(52-53) ≈ 48%
+- Market prices: 54-55 at 45¢, 52-53 at 20¢
+- Adjacent pair cost: 65¢ for ~96% combined probability → EV = +48%
+
+When the forecast is mid-bucket (56°F, center of 56-57), adjacent bucket probability drops to ~15%. No edge. **The edge exists specifically at boundaries.**
+
+### The Strategy
+
+1. **Scan** all markets for boundary conditions: `|forecast - bucket_edge| < 0.5 × σ`
+2. **Price** the adjacent pair: sum of both bucket market prices
+3. **Calculate** true combined P using forecast distribution (normal CDF with known σ)
+4. **Trade** when `pair_cost < combined_P - margin`: buy both adjacent buckets
+5. **Dynamic exit**: as data updates, one bucket gains probability → sell the loser, hold the winner
+
+### Why Narrow-Range Cities Are Premium
+
+Cities like Seattle (marine climate, 2-3°F daily range) keep temperatures near boundaries all day. This means:
+- Mispricing persists longer (more entry opportunities)
+- Both buckets stay "in play" deeper into the day
+- Higher combined probability for the adjacent pair
+
+Wide-range cities (Dallas, 20°F+ daily range) blow through boundaries quickly — the mispricing window is minutes, not hours.
+
+### Generalizes Beyond Weather
+
+Any prediction market with discrete outcomes over a continuous underlying variable:
+- Sports: over/under near the line number
+- Politics: vote share buckets near polling averages
+- Crypto: price buckets near current spot
+
+**The edge is the boundary. Hunt it.**
