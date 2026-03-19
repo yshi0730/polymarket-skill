@@ -7,7 +7,7 @@
  *
  * Usage:
  *   node edge-analyzer.mjs --market <event-slug> [--data-source twc|ensemble|polls|odds]
- *   node edge-analyzer.mjs --market highest-temperature-in-nyc-on-march-20-2025 --data-source ensemble
+ *   node edge-analyzer.mjs --market us-presidential-election-2028-popular-vote --data-source ensemble
  *
  * As module:
  *   import { analyzeEdge, fetchMarketBuckets } from './edge-analyzer.mjs';
@@ -214,7 +214,7 @@ async function main() {
   const eventSlug = getArg('--market');
   if (!eventSlug) {
     console.error('Usage: node edge-analyzer.mjs --market <event-slug> [--data-source <src>]');
-    console.error('Example: node edge-analyzer.mjs --market highest-temperature-in-nyc-on-march-20-2025');
+    console.error('Example: node edge-analyzer.mjs --market us-presidential-election-2028-popular-vote');
     process.exit(1);
   }
 

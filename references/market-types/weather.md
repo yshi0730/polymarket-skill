@@ -4,39 +4,31 @@
 Polymarket weather markets ask: "Will the highest temperature in [City] be [X°F/°C] on [Date]?"
 Markets are bucketed (e.g., 72-74°F, 75°F or higher). Each bucket is a separate YES/NO market.
 
-## Key Edge Sources
+## Resolution
+Most weather markets resolve via Weather Underground (wunderground.com) historical data for a specific station. **Always verify which station** — the market description specifies it.
 
-### 1. Station Mismatch (Tier 1 Edge)
-Airport weather stations ≠ city center. If the market resolves using a specific station, knowing that station's microclimate bias gives you an edge.
-- Airport stations tend to be cooler (open field, elevation)
-- Urban heat island pushes city center warmer
-- Coastal stations may differ 2-3°C from inland
+## Key Considerations
 
-### 2. Data Precision (Tier 2 Edge)
-Most forecasts report integer temperatures. If you have 0.1°C precision, you know which way the rounding goes.
-- **T-group** in US METAR: 0.1°C precision (e.g., T02340178 = 23.4°C)
-- **KMA** (Korea): 0.1°C airport observations
-- **CWA** (Taiwan): 0.1°C station data
-- Rounding rule: ≥0.5 rounds up, <0.5 rounds down
+### 1. Verify the Exact Station
+Markets resolve based on a specific weather station (usually an airport ICAO code). The station listed in the market description is the only one that matters. Don't assume "city name" = city center weather.
 
-### 3. Ensemble Spread (Tier 3 Edge)
-GFS ensemble (31 members via Open-Meteo) gives you uncertainty distribution. When ensemble spread is tight and centered on one bucket, that's a high-confidence trade.
+### 2. Rounding Rules
+Temperatures may be reported as integers. If the underlying measurement is continuous, understanding the rounding method (round vs truncate, °C→°F conversion) is critical for boundary trades.
 
-## Data Pipeline
-1. **Anchor**: TWC hourly forecast (most stable single-source forecast)
-2. **Spread**: Open-Meteo GFS ensemble (uncertainty quantification)
-3. **Blend**: Shift ensemble 50% toward TWC anchor (reduces ensemble bias)
-4. **Precision**: METAR T-group / KMA / CWA for 0.1°C near-realtime
-5. **Cross-validate**: NWS (US), local met agencies
+### 3. Forecast Sources
+Multiple free forecast APIs exist (check `references/data-sources.md`). Compare multiple sources to build confidence. No single forecast is reliable enough to trade blindly.
 
-## Timing
-- Entry sweet spot: 12-24h before resolution date
-- Closer = less drift risk, but market may already be efficient
-- Peak temperature usually: 2-4pm local time (varies by city/season)
-- Monitor after peak: observed max gives near-certain resolution
+### 4. Timing
+- Peak temperature is usually mid-afternoon local time, but varies by geography and season
+- Coastal cities may peak later; desert cities peak earlier
+- Monitor after expected peak: observed max gives near-certain resolution
+- Cloud cover and frontal passages can shift peak timing significantly
+
+### 5. Unit Conversion
+For US cities (°F): the raw measurement is often in °C, then converted. The conversion and rounding can shift which bucket wins. Understand the full chain: measurement → conversion → rounding → settlement.
 
 ## Common Pitfalls
-- Forecast models update at fixed times (00Z, 06Z, 12Z, 18Z) — don't over-read stale data
-- Cloud cover dramatically changes peak timing
+- Forecast models update at fixed synoptic times — don't over-read stale data between updates
 - Cold fronts can shift peak temperature by hours
-- Airport microclimates differ from standard expectations
+- "No Data Recorded" on Weather Underground doesn't mean no settlement — the data may appear later
+- Different cities may use different resolution methodologies even on the same platform

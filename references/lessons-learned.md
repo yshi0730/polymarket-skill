@@ -8,7 +8,7 @@ Local trade logs drift from reality. Orders partially fill, settlements happen, 
 **Rule:** Primary = on-chain API. Local logs = backup only.
 
 ## 2. Verify Your Settlement Source
-The data source you *think* resolves a market may not be the actual one. Example: Seoul weather markets — we assumed Weather Underground used airport station data, but they used a different station. The 0.5°C difference was the entire position.
+The data source you *think* resolves a market may not be the actual one. Example: a sports market resolved using an official league API, not the third-party stats site we were tracking. The slight data lag cost us the position.
 
 **Rule:** Before trading, verify the exact resolution source and methodology. Read the market rules.
 
@@ -56,14 +56,14 @@ For ranged markets (weather, numbers), buying adjacent buckets reduces downside.
 **Strategy:** Buy primary bucket + adjacent bucket at ratio (e.g., 70/30). Dynamic take-profit on whichever becomes favored.
 
 ## 11. Data Precision Matters
-0.1°C precision (T-group in METAR, KMA data) vs 1°C integer rounding can be the entire edge. If you're trading a market that rounds to integers, knowing the decimal gives you an information advantage.
+Higher-precision data vs rounded public data can be the entire edge. If a market resolves by rounding a continuous value to an integer, accessing the un-rounded source gives you an information advantage.
 
 **Rule:** Always seek the highest-precision data source available. The precision delta IS the edge.
 
 ## 12. Station ≠ City
-Airport temperatures differ from city center. Weather stations at airports (which is what most data sources report) can differ by 1-3°C from downtown. If the market resolves based on a specific station, know which one.
+The measurement point matters. Official data sources may report from a location that differs systematically from the "expected" location. If a market resolves based on a specific data point, verify exactly where and how it's measured.
 
-**Rule:** Identify the exact measurement station. Map it. Understand its microclimate biases.
+**Rule:** Identify the exact measurement source. Understand its biases relative to market expectations.
 
 ## 13. Boundary-Hunting: The Structural Edge in Bucket Markets
 
@@ -73,12 +73,12 @@ The biggest systematic mispricing in prediction markets with discrete buckets is
 
 Markets psychologically over-concentrate probability on the forecast-favored bucket. But forecast error is continuous (roughly normal, σ≈1-2 units). When the forecast sits at a bucket boundary, adjacent buckets have nearly equal true probability — but the market won't price them that way.
 
-**Example:** TWC forecast = 54°F (boundary of 52-53 / 54-55 buckets), σ≈1°F:
-- P(54-55) ≈ 48%, P(52-53) ≈ 48%
-- Market prices: 54-55 at 45¢, 52-53 at 20¢
-- Adjacent pair cost: 65¢ for ~96% combined probability → EV = +48%
+**Example:** Model output = 250 (boundary of 248-250 / 251-253 buckets), σ≈2:
+- P(248-250) ≈ 45%, P(251-253) ≈ 45%
+- Market prices: 251-253 at 45¢, 248-250 at 20¢
+- Adjacent pair cost: 65¢ for ~90% combined probability → EV = +38%
 
-When the forecast is mid-bucket (56°F, center of 56-57), adjacent bucket probability drops to ~15%. No edge. **The edge exists specifically at boundaries.**
+When the model output is mid-bucket (255, center of 254-256), adjacent bucket probability drops to ~15%. No edge. **The edge exists specifically at boundaries.**
 
 ### The Strategy
 
@@ -90,12 +90,12 @@ When the forecast is mid-bucket (56°F, center of 56-57), adjacent bucket probab
 
 ### Why Narrow-Range Cities Are Premium
 
-Cities like Seattle (marine climate, 2-3°F daily range) keep temperatures near boundaries all day. This means:
+Markets where the underlying variable has low volatility (tight range) keep values near boundaries for longer. This means:
 - Mispricing persists longer (more entry opportunities)
-- Both buckets stay "in play" deeper into the day
+- Both buckets stay "in play" deeper into the resolution window
 - Higher combined probability for the adjacent pair
 
-Wide-range cities (Dallas, 20°F+ daily range) blow through boundaries quickly — the mispricing window is minutes, not hours.
+High-volatility markets blow through boundaries quickly — the mispricing window is short.
 
 ### Generalizes Beyond Weather
 
@@ -103,5 +103,6 @@ Any prediction market with discrete outcomes over a continuous underlying variab
 - Sports: over/under near the line number
 - Politics: vote share buckets near polling averages
 - Crypto: price buckets near current spot
+- Any ranged market where resolution rounds a continuous value
 
 **The edge is the boundary. Hunt it.**

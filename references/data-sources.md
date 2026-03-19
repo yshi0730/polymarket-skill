@@ -7,7 +7,7 @@
 |---|---|---|---|---|
 | Open-Meteo | ensemble-api.open-meteo.com | 0.1°C | Global | GFS 31-member ensemble, great for uncertainty |
 | NWS | api.weather.gov | 1°F | US only | Official US forecasts, reliable |
-| METAR/TAF | aviationweather.gov | 1°C (0.1 via T-group) | Global airports | Aviation weather, T-group gives 0.1°C for US |
+| METAR/TAF | aviationweather.gov | 1°C (0.1 via T-group) | Global airports | Aviation weather reports from airports |
 | KMA | amo.kma.go.kr | 0.1°C | Korea | Korean Met Agency, excellent precision |
 | CWA | opendata.cwa.gov.tw | 0.1°C | Taiwan | Central Weather Admin, high precision |
 | HKO | data.weather.gov.hk | 1°C | Hong Kong | Hong Kong Observatory |
@@ -15,7 +15,7 @@
 ### Paid
 | Source | API | Precision | Notes |
 |---|---|---|---|
-| Weather Company (TWC) | api.weather.com | 1°C | IBM/TWC, hourly forecasts, good anchor |
+| Weather Company (TWC) | api.weather.com | 1°C | IBM/TWC, hourly forecasts |
 | Tomorrow.io | api.tomorrow.io | 0.1°C | Good ensemble data |
 | ClimaCell | api.climacell.co | 0.1°C | Now Tomorrow.io |
 

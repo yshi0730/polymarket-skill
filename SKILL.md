@@ -98,7 +98,7 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 
 The biggest structural edge in any bucket-based prediction market (weather, sports over/under, vote share, price ranges) is **boundary mispricing**. Markets over-concentrate probability on the forecast-favored bucket while systematically underpricing adjacent buckets near the boundary.
 
-**When to apply:** Any market where a continuous variable (temperature, score, vote %, price) is bucketed into discrete outcomes.
+**When to apply:** Any market where a continuous variable (score, vote %, price, any continuous metric) is bucketed into discrete outcomes.
 
 **How it works:**
 1. **Scan** for markets where the forecast/model output falls near a bucket boundary
@@ -108,7 +108,7 @@ The biggest structural edge in any bucket-based prediction market (weather, spor
 
 **Why it works:** Forecast errors are continuous and roughly symmetric. At a boundary, true probability splits nearly 50/50 between adjacent buckets. But bettors pile into the forecast-favored bucket, leaving the adjacent one cheap. The pair trade captures this mispricing regardless of which side resolves.
 
-**Narrow-range markets are premium** — when the underlying variable naturally stays near boundaries (e.g., marine climates for weather, tight elections for politics), the mispricing persists longer.
+**Narrow-range markets are premium** — when the underlying variable naturally stays near boundaries (e.g., tight elections for politics, low-volatility assets for crypto), the mispricing persists longer.
 
 Read `references/lessons-learned.md` §13 for the full derivation with examples.
 
@@ -128,7 +128,7 @@ Read `references/lessons-learned.md` for the full list. The non-negotiables:
 
 Load the relevant reference when working with a specific market type:
 
-- `references/market-types/weather.md` — stations, rounding, data sources, T-group precision
+- `references/market-types/weather.md` — resolution mechanics, data sources, common pitfalls
 - `references/market-types/politics.md` — polls, models, timing, resolution mechanics
 - `references/market-types/sports.md` — odds APIs, injury data, line movement
 - `references/market-types/crypto.md` — on-chain data, sentiment, funding rates
