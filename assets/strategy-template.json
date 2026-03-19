@@ -1,0 +1,61 @@
+{
+  "name": "My Strategy",
+  "version": "1.0",
+  "createdAt": null,
+  "marketType": "weather",
+  "description": "Describe your edge thesis here",
+
+  "entry": {
+    "edgeThreshold": 0.05,
+    "minVolume": 1000,
+    "maxSpread": 0.04,
+    "minBidDepth": 10,
+    "minHoursToResolution": 2,
+    "maxHoursToResolution": 48,
+    "dataSources": ["twc", "ensemble"],
+    "notes": "Only enter when model confidence > threshold and orderbook supports exit"
+  },
+
+  "exit": {
+    "takeProfit": {
+      "method": "ev-based",
+      "threshold": "bid > model_probability",
+      "notes": "Sell when holding EV < selling EV"
+    },
+    "stopLoss": {
+      "method": "forecast-drift",
+      "threshold": "forecast outside bucket",
+      "maxLossPct": -0.20,
+      "notes": "Exit when underlying data no longer supports position"
+    },
+    "emergency": {
+      "floorPrice": 0.01,
+      "trigger": "outcome determined against position",
+      "notes": "Speed > price. Dump everything."
+    },
+    "timeBased": {
+      "forceExitHoursBeforeResolution": 1,
+      "notes": "Exit if still uncertain close to resolution"
+    }
+  },
+
+  "sizing": {
+    "method": "edge-scaled",
+    "maxSinglePosition": 25,
+    "maxTotalExposure": 150,
+    "maxOpenPositions": 8,
+    "tiers": [
+      { "minEdge": 0.15, "size": 25 },
+      { "minEdge": 0.10, "size": 20 },
+      { "minEdge": 0.05, "size": 10 }
+    ]
+  },
+
+  "monitoring": {
+    "positionManagerEnabled": true,
+    "dataLoggerIntervalMin": 30,
+    "scannerIntervalHours": 4,
+    "forecastDriftCheckMin": 30,
+    "notifications": true
+  }
+}
