@@ -94,6 +94,24 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 3. Weekly: re-evaluate strategy parameters based on data
 4. Update `references/lessons-learned.md` with new learnings
 
+## Core Strategy Pattern: Boundary-Hunting
+
+The biggest structural edge in any bucket-based prediction market (weather, sports over/under, vote share, price ranges) is **boundary mispricing**. Markets over-concentrate probability on the forecast-favored bucket while systematically underpricing adjacent buckets near the boundary.
+
+**When to apply:** Any market where a continuous variable (temperature, score, vote %, price) is bucketed into discrete outcomes.
+
+**How it works:**
+1. **Scan** for markets where the forecast/model output falls near a bucket boundary
+2. **Price the pair**: buy both adjacent buckets — combined true probability is much higher than the market implies
+3. **Key formula**: edge = P_combined(model) - cost(bucket_A + bucket_B). If positive, trade.
+4. **Dynamic exit**: as data updates, one bucket gains → sell the loser, hold the winner
+
+**Why it works:** Forecast errors are continuous and roughly symmetric. At a boundary, true probability splits nearly 50/50 between adjacent buckets. But bettors pile into the forecast-favored bucket, leaving the adjacent one cheap. The pair trade captures this mispricing regardless of which side resolves.
+
+**Narrow-range markets are premium** — when the underlying variable naturally stays near boundaries (e.g., marine climates for weather, tight elections for politics), the mispricing persists longer.
+
+Read `references/lessons-learned.md` §13 for the full derivation with examples.
+
 ## Critical Rules (from live trading)
 
 Read `references/lessons-learned.md` for the full list. The non-negotiables:

@@ -241,6 +241,32 @@ async function main() {
     console.log(`${title}| ${price} | ${spread} | ${depth} | ${vol}`);
   }
 
+  // ─── Boundary Detection ───
+  // For ranged/numeric buckets, detect when forecast could land near a boundary
+  const numericBuckets = buckets
+    .map(b => {
+      const m = (b.title || '').match(/([\.\d]+)/);
+      return m ? { ...b, numVal: parseFloat(m[1]) } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.numVal - b.numVal);
+
+  if (numericBuckets.length >= 2) {
+    console.log('\n🎯 Boundary Analysis (adjacent bucket pairs):');
+    console.log('Pair                          | Combined | Boundary');
+    console.log('─'.repeat(55));
+    for (let i = 0; i < numericBuckets.length - 1; i++) {
+      const a = numericBuckets[i], b = numericBuckets[i + 1];
+      const combined = a.yesPrice + b.yesPrice;
+      const boundary = (a.numVal + b.numVal) / 2;
+      const pairLabel = ((a.title || '').slice(0, 12) + ' + ' + (b.title || '').slice(0, 12)).padEnd(30);
+      const flag = combined < 0.65 ? ' ⚡ POTENTIAL EDGE' : '';
+      console.log(pairLabel + '| ' + (combined * 100).toFixed(1) + '¢'.padStart(6) + ' | ' + boundary.toFixed(1) + flag);
+    }
+    console.log('\n💡 Buy adjacent pairs when combined cost < true P(pair).');
+    console.log('   If your model forecast is near a boundary, both buckets are in play.');
+  }
+
   console.log('\n💡 To calculate edge, pair this with a probability model.');
   console.log('   The agent should use external data sources to estimate P(outcome)');
   console.log('   and compare against market prices shown above.');
