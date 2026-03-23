@@ -6,7 +6,7 @@
  * Supports pluggable data sources and probability models.
  *
  * Usage:
- *   node edge-analyzer.mjs --market <event-slug> [--data-source twc|ensemble|polls|odds]
+ *   node edge-analyzer.mjs --market <event-slug> [--data-source ensemble|polls|odds|custom]
  *   node edge-analyzer.mjs --market us-presidential-election-2028-popular-vote --data-source ensemble
  *
  * As module:

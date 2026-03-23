@@ -1,23 +1,18 @@
 # Data Sources for Edge Detection
 
+Finding the right data source is your primary edge. For any market type, the key questions are:
+1. **What data does the market resolve on?** (the settlement source)
+2. **What higher-precision or faster-updating sources exist?** (your edge)
+3. **Can you cross-validate across multiple sources?** (confidence)
+
 ## Weather
-
-### Free
-| Source | API | Precision | Coverage | Notes |
-|---|---|---|---|---|
-| Open-Meteo | ensemble-api.open-meteo.com | 0.1°C | Global | GFS 31-member ensemble, great for uncertainty |
-| NWS | api.weather.gov | 1°F | US only | Official US forecasts, reliable |
-| METAR/TAF | aviationweather.gov | 1°C (0.1 via T-group) | Global airports | Aviation weather reports from airports |
-| KMA | amo.kma.go.kr | 0.1°C | Korea | Korean Met Agency, excellent precision |
-| CWA | opendata.cwa.gov.tw | 0.1°C | Taiwan | Central Weather Admin, high precision |
-| HKO | data.weather.gov.hk | 1°C | Hong Kong | Hong Kong Observatory |
-
-### Paid
-| Source | API | Precision | Notes |
-|---|---|---|---|
-| Weather Company (TWC) | api.weather.com | 1°C | IBM/TWC, hourly forecasts |
-| Tomorrow.io | api.tomorrow.io | 0.1°C | Good ensemble data |
-| ClimaCell | api.climacell.co | 0.1°C | Now Tomorrow.io |
+| Source | Type | Notes |
+|---|---|---|
+| Open-Meteo | Ensemble forecasts | Free, global, 0.1°C precision, multiple models |
+| NWS (api.weather.gov) | Official forecasts | Free, US only |
+| METAR/TAF (aviationweather.gov) | Airport observations | Free, global, near-real-time |
+| National met agencies | Official observations | Many countries publish free APIs (search "[country] meteorological agency API") |
+| Commercial forecast APIs | High-precision forecasts | Tomorrow.io, Weather Company, etc. — paid tiers offer ensemble data |
 
 ## Politics
 | Source | Type | Notes |
@@ -45,9 +40,19 @@
 | LunarCrush | Social | Social sentiment scoring |
 | Fear & Greed Index | Sentiment | alternative.me/crypto |
 
+## Finding Data Sources for Any Market Type
+
+For custom or emerging market types, follow this process:
+
+1. **Read the market description** — identify the exact resolution source and methodology
+2. **Search for the raw data** — find the API or data feed the resolution source uses
+3. **Find higher-precision alternatives** — if the market rounds data, find the un-rounded source
+4. **Check update frequency** — faster updates than other traders = speed edge
+5. **Cross-validate** — use 2-3 independent sources to build confidence
+
 ## General Best Practices
 1. **Cross-validate** — never rely on a single source
 2. **Cache aggressively** — most data doesn't change faster than every 15-30min
 3. **Handle failures gracefully** — APIs go down, have fallbacks
 4. **Track data freshness** — stale data = stale edge
-5. **Know update schedules** — NWS updates 4x/day, TWC hourly, METAR every 20min-1h
+5. **Know update schedules** — understand how often each source refreshes

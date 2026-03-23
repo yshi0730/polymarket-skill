@@ -7,10 +7,10 @@
 - Resolution timing varies: some immediate, some up to 48h after event
 
 ## Weather Markets
-- **Source:** Usually Weather Underground (wunderground.com) or specified weather service
-- **Resolution:** Highest recorded temperature at the **specific station** on the date
-- **Rounding:** Integer rounding (e.g., 72.4°F → 72°F, 72.5°F → 73°F)
-- **Gotcha:** The station listed may not be the main airport station; verify on the resolution source
+- **Source:** Usually a specified weather data provider (e.g., Weather Underground) for a specific station
+- **Resolution:** Highest recorded value at the **specific station** listed in the market description
+- **Rounding:** Check the resolution source's rounding methodology — this varies by provider
+- **Gotcha:** The station listed may differ from the "expected" location; always verify on the resolution source
 - **Timing:** Usually resolves within 24h of the date ending
 
 ## Political Markets

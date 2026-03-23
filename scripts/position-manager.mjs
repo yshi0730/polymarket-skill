@@ -136,7 +136,7 @@ function loadPositionsFromTrades() {
     for (const line of lines) {
       try {
         const t = JSON.parse(line);
-        const key = t.tokenId || t.asset || `${t.city}|${t.bucket}`;
+        const key = t.tokenId || t.asset || `${t.market}|${t.bucket}`;
         if (!positions[key]) positions[key] = { buys: [], sells: [], closed: false };
 
         if (t.action === 'BUY') positions[key].buys.push(t);
@@ -159,14 +159,14 @@ function loadPositionsFromTrades() {
         const latest = p.buys[p.buys.length - 1];
 
         return {
-          title: latest.market || latest.city || key,
+          title: latest.market || latest.title || key,
           size: netShares,
           avgPrice,
           curPrice: 0,
           initialValue: avgPrice * netShares,
           asset: latest.tokenId || key,
           eventSlug: latest.eventSlug,
-          endDate: latest.endDate || latest.targetDate,
+          endDate: latest.endDate,
         };
       })
       .filter(Boolean);

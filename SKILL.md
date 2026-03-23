@@ -108,7 +108,7 @@ The biggest structural edge in any bucket-based prediction market (weather, spor
 
 **Why it works:** Forecast errors are continuous and roughly symmetric. At a boundary, true probability splits nearly 50/50 between adjacent buckets. But bettors pile into the forecast-favored bucket, leaving the adjacent one cheap. The pair trade captures this mispricing regardless of which side resolves.
 
-**Narrow-range markets are premium** — when the underlying variable naturally stays near boundaries (e.g., tight elections for politics, low-volatility assets for crypto), the mispricing persists longer.
+**Low-volatility markets are premium** — when the underlying variable naturally stays near boundaries (e.g., tight elections for politics, low-volatility assets for crypto, stable weather patterns), the mispricing persists longer.
 
 Read `references/lessons-learned.md` §13 for the full derivation with examples.
 

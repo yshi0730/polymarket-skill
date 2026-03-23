@@ -1,6 +1,6 @@
-# Lessons Learned — Battle-Tested from Live Trading
+# Lessons Learned — Battle-Tested Trading Rules
 
-These are hard-won lessons from real money on Polymarket. Every one of these cost us something to learn.
+These lessons come from live prediction market trading. Every one cost something to learn.
 
 ## 1. Always Use On-Chain Position Data
 Local trade logs drift from reality. Orders partially fill, settlements happen, and your JSONL gets stale. The data API (`data-api.polymarket.com/positions`) is ground truth.
@@ -8,7 +8,7 @@ Local trade logs drift from reality. Orders partially fill, settlements happen, 
 **Rule:** Primary = on-chain API. Local logs = backup only.
 
 ## 2. Verify Your Settlement Source
-The data source you *think* resolves a market may not be the actual one. Example: a sports market resolved using an official league API, not the third-party stats site we were tracking. The slight data lag cost us the position.
+The data source you *think* resolves a market may not be the actual one. Markets can resolve using a different provider, methodology, or timestamp than expected. A slight data discrepancy can cost the position.
 
 **Rule:** Before trading, verify the exact resolution source and methodology. Read the market rules.
 
@@ -33,7 +33,7 @@ Markets move, and your edge can disappear between entry and resolution. A foreca
 **Rule:** Continuously monitor the data source that drives your edge. If it drifts outside your position, exit.
 
 ## 7. Entry Timing Depends on Market Type
-Optimal entry timing varies by market. Weather markets favor 12-24h before resolution (less forecast drift). Political markets may reward earlier entry when polls shift. Sports markets move fastest close to game time. Crypto markets can have edge at any horizon.
+Optimal entry timing varies by market. Short-horizon markets (weather, daily prices) favor entry 12-24h before resolution. Political markets may reward earlier entry when polls shift. Sports markets move fastest close to game time. Crypto markets can have edge at any horizon.
 
 **Rule:** Match entry timing to your market's information cycle. Earlier entry = more drift risk but potentially larger edge. Closer to resolution = less drift but thinner edge. There is no universal "closer is better" — it depends on how your data source updates.
 
@@ -46,12 +46,12 @@ Wide spreads eat your edge. If the spread is 4¢ on a 10% edge, you're giving aw
 - Always use limit orders at or near the ask, never market buy
 
 ## 9. Never Market Buy
-Slippage on thin prediction market books is brutal. We once paid 53% more than the displayed price on a market buy due to thin book depth.
+Slippage on thin prediction market books is brutal. Paying significantly more than the displayed price due to thin book depth is common.
 
 **Rule:** Limit orders only. If your limit doesn't fill, the edge wasn't real enough.
 
 ## 10. Adjacent Buckets as Hedge
-For ranged markets (weather, numbers), buying adjacent buckets reduces downside. If the market resolves at the boundary, one position wins.
+For ranged markets (temperature, price, score), buying adjacent buckets reduces downside. If the market resolves at the boundary, one position wins.
 
 **Strategy:** Buy primary bucket + adjacent bucket at ratio (e.g., 70/30). Dynamic take-profit on whichever becomes favored.
 
@@ -60,35 +60,35 @@ Higher-precision data vs rounded public data can be the entire edge. If a market
 
 **Rule:** Always seek the highest-precision data source available. The precision delta IS the edge.
 
-## 12. Station ≠ City
-The measurement point matters. Official data sources may report from a location that differs systematically from the "expected" location. If a market resolves based on a specific data point, verify exactly where and how it's measured.
+## 12. Measurement Point ≠ Label
+The actual measurement point matters. Official data sources may report from a location or methodology that differs systematically from what the market label implies. If a market resolves based on a specific data point, verify exactly where and how it's measured.
 
 **Rule:** Identify the exact measurement source. Understand its biases relative to market expectations.
 
 ## 13. Boundary-Hunting: The Structural Edge in Bucket Markets
 
-The biggest systematic mispricing in prediction markets with discrete buckets isn't about picking the right bucket — it's about **finding markets where the forecast lands near a bucket boundary**.
+The biggest systematic mispricing in prediction markets with discrete buckets isn't about picking the right bucket — it's about **finding markets where the expected value lands near a bucket boundary**.
 
 ### Why Boundaries Create Edge
 
-Markets psychologically over-concentrate probability on the forecast-favored bucket. But forecast error is continuous (roughly normal, σ≈1-2 units). When the forecast sits at a bucket boundary, adjacent buckets have nearly equal true probability — but the market won't price them that way.
+Markets psychologically over-concentrate probability on the forecast-favored bucket. But forecast error is continuous (roughly normal, σ≈1-2 units). When the expected value sits at a bucket boundary, adjacent buckets have nearly equal true probability — but the market won't price them that way.
 
-**Example:** Model output = 250 (boundary of 248-250 / 251-253 buckets), σ≈2:
-- P(248-250) ≈ 45%, P(251-253) ≈ 45%
-- Market prices: 251-253 at 45¢, 248-250 at 20¢
+**Example:** Model expected value = 50 (boundary of 48-50 / 51-53 buckets), σ≈2:
+- P(48-50) ≈ 45%, P(51-53) ≈ 45%
+- Market prices: 51-53 at 45¢, 48-50 at 20¢
 - Adjacent pair cost: 65¢ for ~90% combined probability → EV = +38%
 
-When the model output is mid-bucket (255, center of 254-256), adjacent bucket probability drops to ~15%. No edge. **The edge exists specifically at boundaries.**
+When the expected value is mid-bucket (55, center of 54-56), adjacent bucket probability drops to ~15%. No edge. **The edge exists specifically at boundaries.**
 
 ### The Strategy
 
-1. **Scan** all markets for boundary conditions: `|forecast - bucket_edge| < 0.5 × σ`
+1. **Scan** all markets for boundary conditions: `|expected_value - bucket_edge| < 0.5 × σ`
 2. **Price** the adjacent pair: sum of both bucket market prices
 3. **Calculate** true combined P using forecast distribution (normal CDF with known σ)
 4. **Trade** when `pair_cost < combined_P - margin`: buy both adjacent buckets
 5. **Dynamic exit**: as data updates, one bucket gains probability → sell the loser, hold the winner
 
-### Why Narrow-Range Cities Are Premium
+### Low-Volatility Markets Are Premium
 
 Markets where the underlying variable has low volatility (tight range) keep values near boundaries for longer. This means:
 - Mispricing persists longer (more entry opportunities)
@@ -97,9 +97,10 @@ Markets where the underlying variable has low volatility (tight range) keep valu
 
 High-volatility markets blow through boundaries quickly — the mispricing window is short.
 
-### Generalizes Beyond Weather
+### Applies to Any Bucket Market
 
 Any prediction market with discrete outcomes over a continuous underlying variable:
+- Weather: temperature buckets near forecast values
 - Sports: over/under near the line number
 - Politics: vote share buckets near polling averages
 - Crypto: price buckets near current spot
