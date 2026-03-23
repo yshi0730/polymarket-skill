@@ -2,7 +2,7 @@
   "name": "My Strategy",
   "version": "1.0",
   "createdAt": null,
-  "marketType": "weather",
+  "marketType": "weather|politics|sports|crypto|custom",
   "description": "Describe your edge thesis here",
 
   "entry": {

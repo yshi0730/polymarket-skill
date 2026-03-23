@@ -21,6 +21,10 @@ Turn any AI agent into a professional prediction market trading desk.
 | `settlement-tracker.mjs` | Track resolved markets + PnL | `node scripts/settlement-tracker.mjs` |
 | `daily-review.mjs` | Generate performance report | `node scripts/daily-review.mjs` |
 
+## Getting Started
+
+New here? Start with the **[Quickstart Tutorial](references/quickstart.md)** — a step-by-step walkthrough from finding a market to exiting a position, with real CLI commands and expected output at every step.
+
 ## Environment Variables
 
 ```

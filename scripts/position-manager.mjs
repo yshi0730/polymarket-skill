@@ -23,6 +23,37 @@
  *   POLYMARKET_WORKSPACE  — workspace root (default: ../../)
  */
 
+/**
+ * ─── Configuration ───
+ *
+ * The position manager reads its configuration from three sources (highest priority first):
+ *
+ * 1. Environment variables (override everything):
+ *    PM_TAKE_PROFIT     — take-profit threshold as decimal (default: 0.05 = 5%)
+ *    PM_STOP_LOSS       — stop-loss threshold as negative decimal (default: -0.20 = -20%)
+ *    PM_EMERGENCY_FLOOR — emergency exit floor price (default: 0.01)
+ *    PM_FAST_POLL       — polling interval in seconds when active (default: 30)
+ *    PM_SLOW_POLL       — polling interval in seconds when idle (default: 300)
+ *    PM_MAX_RETRIES     — max sell retries before marking failed (default: 3)
+ *    PM_NOTIFY          — enable notifications: "true" or "false" (default: true)
+ *
+ * 2. Config file (polymarket/config.json relative to workspace root):
+ *    {
+ *      "takeProfitThreshold": 0.05,
+ *      "stopLossThreshold": -0.20,
+ *      "emergencyFloorPrice": 0.01,
+ *      "fastPollSec": 30,
+ *      "slowPollSec": 300,
+ *      "maxRetries": 3,
+ *      "notifyOnExit": true
+ *    }
+ *
+ * 3. Hardcoded defaults (see DEFAULT_CONFIG below).
+ *
+ * To customize, either set env vars or create polymarket/config.json in your workspace.
+ * See assets/strategy-template.json for a full strategy config template.
+ */
+
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
@@ -50,9 +81,21 @@ const DEFAULT_CONFIG = {
 
 function loadConfig() {
   const config = { ...DEFAULT_CONFIG };
+
+  // Layer 1: config file
   if (existsSync(CONFIG_FILE)) {
     try { Object.assign(config, JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'))); } catch {}
   }
+
+  // Layer 2: environment variables (highest priority)
+  if (process.env.PM_TAKE_PROFIT) config.takeProfitThreshold = parseFloat(process.env.PM_TAKE_PROFIT);
+  if (process.env.PM_STOP_LOSS) config.stopLossThreshold = parseFloat(process.env.PM_STOP_LOSS);
+  if (process.env.PM_EMERGENCY_FLOOR) config.emergencyFloorPrice = parseFloat(process.env.PM_EMERGENCY_FLOOR);
+  if (process.env.PM_FAST_POLL) config.fastPollSec = parseInt(process.env.PM_FAST_POLL, 10);
+  if (process.env.PM_SLOW_POLL) config.slowPollSec = parseInt(process.env.PM_SLOW_POLL, 10);
+  if (process.env.PM_MAX_RETRIES) config.maxRetries = parseInt(process.env.PM_MAX_RETRIES, 10);
+  if (process.env.PM_NOTIFY) config.notifyOnExit = process.env.PM_NOTIFY === 'true';
+
   return config;
 }
 

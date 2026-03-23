@@ -138,6 +138,67 @@ export function ensembleToBucketProbs(members, buckets) {
   }));
 }
 
+// ─── Example Model Function ───
+
+/**
+ * Example model function: poll-based probability model for politics markets.
+ *
+ * A modelFn receives the market buckets and returns { probabilities: Map<title, prob> }.
+ * This example shows how to build one from polling data. Replace the hardcoded
+ * poll data with a real API call (e.g., FiveThirtyEight, RealClearPolitics).
+ *
+ * Usage with analyzeEdge:
+ *   const edges = await analyzeEdge(buckets, exampleModelFn);
+ *
+ * @param {Array} buckets - market buckets from fetchMarketBuckets()
+ * @returns {{ probabilities: Map<string, number>, source: string }}
+ */
+export async function exampleModelFn(buckets) {
+  // Step 1: Get your external data.
+  // In production, fetch from a real API. Here we simulate poll data.
+  const pollEstimate = 49.5;  // e.g., polling average says 49.5%
+  const pollStdDev = 3.0;     // uncertainty (wider = more spread across buckets)
+
+  // Step 2: Parse bucket boundaries from titles.
+  // Expects titles like "48-50%", "50-52%", ">54%", "<44%", etc.
+  const parsed = buckets.map(b => {
+    const range = (b.title || '').match(/([\d.]+)\s*[-–]\s*([\d.]+)/);
+    const gt = (b.title || '').match(/[>≥]\s*([\d.]+)/);
+    const lt = (b.title || '').match(/[<≤]\s*([\d.]+)/);
+
+    let lo, hi;
+    if (range) { lo = parseFloat(range[1]); hi = parseFloat(range[2]); }
+    else if (gt) { lo = parseFloat(gt[1]); hi = lo + 20; }  // open-ended upper
+    else if (lt) { hi = parseFloat(lt[1]); lo = hi - 20; }   // open-ended lower
+    else { return { title: b.title, lo: null, hi: null }; }
+
+    return { title: b.title, lo, hi };
+  });
+
+  // Step 3: Calculate probability for each bucket using normal distribution.
+  const probabilities = new Map();
+  let totalProb = 0;
+
+  for (const p of parsed) {
+    if (p.lo === null) {
+      probabilities.set(p.title, 0);
+      continue;
+    }
+    const prob = bucketProbability(pollEstimate, pollStdDev, p.lo, p.hi);
+    probabilities.set(p.title, prob);
+    totalProb += prob;
+  }
+
+  // Step 4: Normalize so probabilities sum to 1.
+  if (totalProb > 0) {
+    for (const [title, prob] of probabilities) {
+      probabilities.set(title, prob / totalProb);
+    }
+  }
+
+  return { probabilities, source: 'poll-based-example' };
+}
+
 // ─── Edge Analysis ───
 
 /**

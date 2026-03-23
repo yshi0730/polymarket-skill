@@ -53,7 +53,7 @@ polymarket clob create-order --token "<yes_token_id>" --side buy --price 0.35 --
 polymarket clob create-order --token "<yes_token_id>" --side sell --price 0.50 --size 20
 
 # Cancel
-polymarket clob cancel-order --order-id "<order_id>"
+polymarket clob cancel <ORDER_ID>
 
 # Check balance
 polymarket clob balance --asset-type conditional --token "<token_id>"
