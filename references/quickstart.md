@@ -48,7 +48,7 @@ Pick a market with good volume (>$10k) and tight spread (<4¢). Let's say we pic
 ## Step 3: Analyze the Edge
 
 ```bash
-# Fetch market data and check for boundary opportunities
+# Fetch market data and analyze opportunities
 node scripts/edge-analyzer.mjs --market us-election-2028-popular-vote
 ```
 
@@ -71,15 +71,15 @@ Bucket              | Market | Spread | Bid Depth | Volume
 52-54%              |  10.0¢ |  3.0¢  |       $30 |    $8,000
 ...
 
-Boundary Analysis (adjacent bucket pairs):
-Pair                          | Combined | Boundary
+Adjacent Bucket Pairs:
+Pair                          | Combined | Midpoint
 ───────────────────────────────────────────────────────
-46-48% + 48-50%               | 50.0¢    | 48.0  POTENTIAL EDGE
+46-48% + 48-50%               | 50.0¢    | 48.0
 48-50% + 50-52%               | 65.0¢    | 50.0
 ...
 ```
 
-Now apply your model. If polling averages show the vote share at ~48.2% (right at the 48% boundary), both "46-48%" and "48-50%" buckets are in play. Combined cost is 50¢ but your model says combined probability is ~70% — that's a +20% edge.
+Now apply your model. Use your external data (polling averages, forecasting models, etc.) to estimate the true probability for each bucket. Compare your model probabilities against the market prices shown above — any bucket where your model probability significantly exceeds the market price is a potential edge.
 
 **Gotcha:** Don't trade without an edge thesis. "It feels cheap" is not an edge. You need external data (polls, models, odds) that disagrees with the market.
 
@@ -194,7 +194,7 @@ node scripts/daily-review.mjs
 |------|---------|--------------|
 | 1 | `setup-wallet.mjs` | Validate wallet, check USDC balance |
 | 2 | `market-scanner.mjs` | Find markets with volume and tight spreads |
-| 3 | `edge-analyzer.mjs` | Check boundary mispricings, compare to your model |
+| 3 | `edge-analyzer.mjs` | Analyze market structure, compare to your model |
 | 4 | `portfolio-gate.mjs` | Verify you're within risk limits |
 | 5 | `order-executor.mjs` | Place limit orders (dry-run first!) |
 | 6 | `position-manager.mjs` | Auto-monitor and exit positions |

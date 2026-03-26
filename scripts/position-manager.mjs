@@ -121,6 +121,12 @@ function notify(msg) {
   } catch {}
 }
 
+function sanitizeShellArg(arg) {
+  if (typeof arg !== 'string') return String(arg);
+  if (!/^[a-zA-Z0-9._\-]+$/.test(arg)) throw new Error(`Invalid argument: ${arg}`);
+  return arg;
+}
+
 async function fetchJSON(url, timeoutMs = 10_000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -253,7 +259,8 @@ async function executeSell(position, price, size, reason, emergency = false) {
     // Verify actual balance
     let actualShares = size;
     try {
-      const balOut = execSync(`polymarket clob balance --asset-type conditional --token "${key}" 2>/dev/null`, { encoding: 'utf-8' });
+      const safeKey = sanitizeShellArg(key);
+      const balOut = execSync(`polymarket clob balance --asset-type conditional --token "${safeKey}" 2>/dev/null`, { encoding: 'utf-8' });
       const match = balOut.match(/Balance: ([\d.]+)/);
       if (match) actualShares = Math.min(size, Math.floor(parseFloat(match[1])));
     } catch {}
@@ -267,8 +274,9 @@ async function executeSell(position, price, size, reason, emergency = false) {
     const sellPrice = emergency ? '0.01' : price.toFixed(2);
     console.log(`  Selling ${actualShares} @ ${sellPrice}...`);
 
+    const safeKey2 = sanitizeShellArg(key);
     const output = execSync(
-      `polymarket clob create-order --token "${key}" --side sell --price ${sellPrice} --size ${actualShares} 2>&1`,
+      `polymarket clob create-order --token "${safeKey2}" --side sell --price ${sellPrice} --size ${actualShares} 2>&1`,
       { encoding: 'utf-8', timeout: 30_000 }
     ).trim();
 

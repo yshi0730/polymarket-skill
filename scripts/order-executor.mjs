@@ -46,6 +46,12 @@ function logTrade(entry) {
 function log(icon, msg) { console.log(`${icon}  ${msg}`); }
 function fail(msg) { log('❌', msg); process.exit(1); }
 
+function sanitizeShellArg(arg) {
+  if (typeof arg !== 'string') return String(arg);
+  if (!/^[a-zA-Z0-9._\-]+$/.test(arg)) throw new Error(`Invalid argument: ${arg}`);
+  return arg;
+}
+
 async function fetchJSON(url, timeoutMs = 10_000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -117,6 +123,7 @@ export async function placeOrder({ tokenId, side, price, size, dryRun = false, e
   if (!['buy', 'sell'].includes(side)) fail('Side must be buy or sell');
   if (price <= 0 || price >= 1) fail('Price must be between 0 and 1');
   if (size < 1) fail('Size must be >= 1');
+  if (typeof tokenId !== 'string' || tokenId.length < 5) fail('Invalid token ID');
 
   // 2. Check orderbook (skip for emergency)
   if (!emergency) {
@@ -153,7 +160,9 @@ export async function placeOrder({ tokenId, side, price, size, dryRun = false, e
   // 5. Execute via polymarket CLI
   log('⏳', `Placing ${side} order: ${size} shares @ ${price}...`);
   try {
-    const cmd = `polymarket clob create-order --token "${tokenId}" --side ${side} --price ${price} --size ${size} 2>&1`;
+    const safeToken = sanitizeShellArg(tokenId);
+    const safeSide = sanitizeShellArg(side);
+    const cmd = `polymarket clob create-order --token "${safeToken}" --side ${safeSide} --price ${price} --size ${size} 2>&1`;
     const output = execSync(cmd, { encoding: 'utf-8', timeout: 30_000 }).trim();
 
     log('✅', `Order placed: ${output.slice(0, 200)}`);
@@ -183,7 +192,8 @@ export async function placeOrder({ tokenId, side, price, size, dryRun = false, e
 export async function cancelOrder(orderId) {
   log('⏳', `Cancelling order ${orderId}...`);
   try {
-    const output = execSync(`polymarket clob cancel-order --order-id "${orderId}" 2>&1`, {
+    const safeOrderId = sanitizeShellArg(orderId);
+    const output = execSync(`polymarket clob cancel-order --order-id "${safeOrderId}" 2>&1`, {
       encoding: 'utf-8', timeout: 15_000,
     }).trim();
     log('✅', `Cancelled: ${output}`);
@@ -219,6 +229,14 @@ async function main() {
 
   if (!tokenId || !side) {
     console.error('Usage: node order-executor.mjs --token <id> --side buy|sell --price 0.35 --size 20 [--dry-run]');
+    process.exit(1);
+  }
+  if (isNaN(price) || price <= 0 || price >= 1) {
+    console.error('Error: --price must be a number between 0 and 1 (exclusive)');
+    process.exit(1);
+  }
+  if (isNaN(size) || size < 1) {
+    console.error('Error: --size must be a positive integer');
     process.exit(1);
   }
 

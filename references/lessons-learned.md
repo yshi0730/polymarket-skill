@@ -50,10 +50,10 @@ Slippage on thin prediction market books is brutal. Paying significantly more th
 
 **Rule:** Limit orders only. If your limit doesn't fill, the edge wasn't real enough.
 
-## 10. Adjacent Buckets as Hedge
-For ranged markets (temperature, price, score), buying adjacent buckets reduces downside. If the market resolves at the boundary, one position wins.
+## 10. Consider Multi-Outcome Hedging
+For ranged markets (temperature, price, score), holding a single bucket is a concentrated bet. Consider whether your model's probability distribution supports spreading across multiple outcomes to reduce variance.
 
-**Strategy:** Buy primary bucket + adjacent bucket at ratio (e.g., 70/30). Dynamic take-profit on whichever becomes favored.
+**Rule:** Let your probability model guide allocation across outcomes. If your model assigns meaningful probability to more than one bucket, your position sizing should reflect that.
 
 ## 11. Data Precision Matters
 Higher-precision data vs rounded public data can be the entire edge. If a market resolves by rounding a continuous value to an integer, accessing the un-rounded source gives you an information advantage.
@@ -65,45 +65,16 @@ The actual measurement point matters. Official data sources may report from a lo
 
 **Rule:** Identify the exact measurement source. Understand its biases relative to market expectations.
 
-## 13. Boundary-Hunting: The Structural Edge in Bucket Markets
+## 13. Bucket Markets Have Structural Inefficiencies
 
-The biggest systematic mispricing in prediction markets with discrete buckets isn't about picking the right bucket — it's about **finding markets where the expected value lands near a bucket boundary**.
+When a prediction market divides a continuous variable (temperature, vote share, price, score) into discrete buckets, the market's probability distribution across buckets often diverges from what a well-calibrated model would predict.
 
-### Why Boundaries Create Edge
+**Rule:** For any bucket-based market, compare the market's implied probability distribution against your model's distribution. Look for buckets or combinations of buckets where the market systematically misprices. The `edge-analyzer.mjs` boundary analysis view can help you spot these patterns.
 
-Markets psychologically over-concentrate probability on the forecast-favored bucket. But forecast error is continuous (roughly normal, σ≈1-2 units). When the expected value sits at a bucket boundary, adjacent buckets have nearly equal true probability — but the market won't price them that way.
+**How to investigate:**
+1. Build a probability model for the underlying variable using external data
+2. Map your model's distribution onto the market's buckets
+3. Compare your bucket probabilities to market prices
+4. Look for mispricings — especially where the market's behavioral biases (anchoring on forecasts, neglecting tail outcomes) create gaps vs. your model
 
-**Example:** Model expected value = 50 (boundary of 48-50 / 51-53 buckets), σ≈2:
-- P(48-50) ≈ 45%, P(51-53) ≈ 45%
-- Market prices: 51-53 at 45¢, 48-50 at 20¢
-- Adjacent pair cost: 65¢ for ~90% combined probability → EV = +38%
-
-When the expected value is mid-bucket (55, center of 54-56), adjacent bucket probability drops to ~15%. No edge. **The edge exists specifically at boundaries.**
-
-### The Strategy
-
-1. **Scan** all markets for boundary conditions: `|expected_value - bucket_edge| < 0.5 × σ`
-2. **Price** the adjacent pair: sum of both bucket market prices
-3. **Calculate** true combined P using forecast distribution (normal CDF with known σ)
-4. **Trade** when `pair_cost < combined_P - margin`: buy both adjacent buckets
-5. **Dynamic exit**: as data updates, one bucket gains probability → sell the loser, hold the winner
-
-### Low-Volatility Markets Are Premium
-
-Markets where the underlying variable has low volatility (tight range) keep values near boundaries for longer. This means:
-- Mispricing persists longer (more entry opportunities)
-- Both buckets stay "in play" deeper into the resolution window
-- Higher combined probability for the adjacent pair
-
-High-volatility markets blow through boundaries quickly — the mispricing window is short.
-
-### Applies to Any Bucket Market
-
-Any prediction market with discrete outcomes over a continuous underlying variable:
-- Weather: temperature buckets near forecast values
-- Sports: over/under near the line number
-- Politics: vote share buckets near polling averages
-- Crypto: price buckets near current spot
-- Any ranged market where resolution rounds a continuous value
-
-**The edge is the boundary. Hunt it.**
+This applies to weather, sports, politics, crypto, and any market where continuous values are bucketed into discrete outcomes.

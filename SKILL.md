@@ -1,6 +1,6 @@
 ---
 name: polymarket
-description: Professional Polymarket prediction market trading assistant. Full lifecycle: wallet onboarding, strategy design, market scanning, edge detection, order execution, position monitoring, risk management, settlement tracking, and performance review. Use when trading prediction markets, analyzing Polymarket opportunities, managing positions, or building trading strategies for any market type (weather, politics, sports, crypto, custom).
+description: Polymarket prediction market trading desk — wallet setup, market scanning, edge analysis, order execution, position management, and performance review.
 ---
 
 # Polymarket Trading Skill
@@ -70,8 +70,9 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 1. Set up cron for data collection: `*/30 * * * * node scripts/data-logger.mjs`
 2. Set up cron for scanning: `0 */4 * * * node scripts/market-scanner.mjs`
 3. Start position manager: `tmux new -d -s poly-mgr 'node scripts/position-manager.mjs'`
-4. **Dry-run first**: `node scripts/order-executor.mjs --dry-run ...` to validate
-5. User confirms → go live
+4. (Optional) Create `scripts/notify.sh` for exit alerts (e.g., Slack webhook, email, macOS notification)
+5. **Dry-run first**: `node scripts/order-executor.mjs --dry-run ...` to validate
+6. User confirms → go live
 
 ### Phase 4: Live Trading
 
@@ -98,23 +99,19 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 3. Weekly: re-evaluate strategy parameters based on data
 4. Update `references/lessons-learned.md` with new learnings
 
-## Core Strategy Pattern: Boundary-Hunting
+## Developing Your Strategy
 
-The biggest structural edge in any bucket-based prediction market (weather, sports over/under, vote share, price ranges) is **boundary mispricing**. Markets over-concentrate probability on the forecast-favored bucket while systematically underpricing adjacent buckets near the boundary.
+The skill doesn't prescribe a single strategy — it helps you **build and test your own edge thesis** interactively. The workflow (Phase 2) guides you through:
 
-**When to apply:** Any market where a continuous variable (score, vote %, price, any continuous metric) is bucketed into discrete outcomes.
+1. **Identify your informational edge** — what do you know that the market doesn't? This could come from better data sources, faster updates, cross-market analysis, or domain expertise.
+2. **Model the probability** — use external data to estimate the true probability of each outcome. The `edge-analyzer.mjs` provides a pluggable framework for probability models.
+3. **Compare to market prices** — edge = your probability - market price. No edge = no trade.
+4. **Define entry/exit rules** — codify your thesis into repeatable, testable conditions.
+5. **Backtest and iterate** — use `data-logger.mjs` to collect market snapshots and validate your model before risking capital.
 
-**How it works:**
-1. **Scan** for markets where the forecast/model output falls near a bucket boundary
-2. **Price the pair**: buy both adjacent buckets — combined true probability is much higher than the market implies
-3. **Key formula**: edge = P_combined(model) - cost(bucket_A + bucket_B). If positive, trade.
-4. **Dynamic exit**: as data updates, one bucket gains → sell the loser, hold the winner
+For bucket-based markets (temperature ranges, vote share brackets, price ranges, over/unders), pay special attention to how the market distributes probability across outcomes vs. what your model says. Markets with discrete buckets over continuous variables often have structural inefficiencies worth investigating.
 
-**Why it works:** Forecast errors are continuous and roughly symmetric. At a boundary, true probability splits nearly 50/50 between adjacent buckets. But bettors pile into the forecast-favored bucket, leaving the adjacent one cheap. The pair trade captures this mispricing regardless of which side resolves.
-
-**Low-volatility markets are premium** — when the underlying variable naturally stays near boundaries (e.g., tight elections for politics, low-volatility assets for crypto, stable weather patterns), the mispricing persists longer.
-
-Read `references/lessons-learned.md` §13 for the full derivation with examples.
+Read the relevant `references/market-types/` guide for domain-specific edge sources, and `references/data-sources.md` for where to find the data that powers your model.
 
 ## Critical Rules (from live trading)
 
@@ -144,3 +141,4 @@ Load the relevant reference when working with a specific market type:
 - `references/resolution-rules.md` — how different market types resolve
 - `references/risk-profiles.md` — conservative/moderate/aggressive templates
 - `references/data-sources.md` — comprehensive list of free/paid data APIs
+- `references/troubleshooting.md` — common issues and fixes

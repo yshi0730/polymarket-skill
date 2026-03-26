@@ -13,7 +13,7 @@ Most weather markets resolve via a specified weather data provider (often Weathe
 Markets resolve based on a specific weather station (usually an airport ICAO code). The station listed in the market description is the only one that matters. Don't assume "city name" = city center weather.
 
 ### 2. Rounding Rules
-Temperatures may be reported as integers. If the underlying measurement is continuous, understanding the rounding method (round vs truncate, unit conversion) is critical for boundary trades.
+Temperatures may be reported as integers. If the underlying measurement is continuous, understanding the rounding method (round vs truncate, unit conversion) is critical for accurate probability modeling.
 
 ### 3. Forecast Sources
 Multiple free forecast APIs exist (check `references/data-sources.md`). Compare multiple sources to build confidence. No single forecast is reliable enough to trade blindly.

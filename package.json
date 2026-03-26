@@ -1,0 +1,10 @@
+{
+  "name": "polymarket-skill",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "AI agent skill for prediction market trading on Polymarket",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

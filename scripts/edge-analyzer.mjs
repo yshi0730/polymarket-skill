@@ -321,11 +321,10 @@ async function main() {
       const combined = a.yesPrice + b.yesPrice;
       const boundary = (a.numVal + b.numVal) / 2;
       const pairLabel = ((a.title || '').slice(0, 12) + ' + ' + (b.title || '').slice(0, 12)).padEnd(30);
-      const flag = combined < 0.65 ? ' ⚡ POTENTIAL EDGE' : '';
-      console.log(pairLabel + '| ' + (combined * 100).toFixed(1) + '¢'.padStart(6) + ' | ' + boundary.toFixed(1) + flag);
+      console.log(pairLabel + '| ' + (combined * 100).toFixed(1) + '¢'.padStart(6) + ' | ' + boundary.toFixed(1));
     }
-    console.log('\n💡 Buy adjacent pairs when combined cost < true P(pair).');
-    console.log('   If your model forecast is near a boundary, both buckets are in play.');
+    console.log('\n💡 Compare these combined costs against your model\'s probability estimates.');
+    console.log('   Use your external data to determine whether any pairs are mispriced.');
   }
 
   console.log('\n💡 To calculate edge, pair this with a probability model.');

@@ -20,7 +20,8 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CONFIG_FILE = join(__dirname, '..', '..', 'polymarket', 'config.json');
+const WORKSPACE = process.env.POLYMARKET_WORKSPACE || join(__dirname, '..', '..');
+const CONFIG_FILE = join(WORKSPACE, 'polymarket', 'config.json');
 
 // ─── API Helpers ───
 
