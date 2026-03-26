@@ -1,5 +1,7 @@
 # Weather Markets
 
+**Market structure:** Typically bucket markets with multiple temperature/precipitation ranges as discrete outcomes.
+
 ## How They Work
 Polymarket weather markets ask: "Will the highest temperature in [City] be [X°F/°C] on [Date]?"
 Markets are bucketed (e.g., 72-74°F, 75°F or higher). Each bucket is a separate YES/NO market.

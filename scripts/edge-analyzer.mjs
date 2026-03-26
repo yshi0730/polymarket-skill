@@ -4,13 +4,14 @@
  *
  * Compares model probability (from external data) against market price.
  * Supports pluggable data sources and probability models.
+ * Supports both binary (YES/NO) and bucket (multi-outcome) markets.
  *
  * Usage:
  *   node edge-analyzer.mjs --market <event-slug> [--data-source ensemble|polls|odds|custom]
  *   node edge-analyzer.mjs --market us-presidential-election-2028-popular-vote --data-source ensemble
  *
  * As module:
- *   import { analyzeEdge, fetchMarketBuckets } from './edge-analyzer.mjs';
+ *   import { analyzeEdge, fetchMarketData } from './edge-analyzer.mjs';
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -45,18 +46,18 @@ async function fetchWithRetry(url, retries = 2) {
 
 // ─── Market Data ───
 
-export async function fetchMarketBuckets(eventSlug) {
+export async function fetchMarketData(eventSlug) {
   const events = await fetchWithRetry(`${GAMMA_API}/events?slug=${eventSlug}`);
   if (!events?.[0]) throw new Error(`Event not found: ${eventSlug}`);
 
   const event = events[0];
-  const buckets = [];
+  const outcomes = [];
 
   for (const m of event.markets || []) {
     const prices = JSON.parse(m.outcomePrices || '[]');
     const tokenIds = JSON.parse(m.clobTokenIds || '[]');
 
-    // Fetch orderbook for each bucket
+    // Fetch orderbook for each outcome
     let orderbook = { bestBid: 0, bestAsk: 1, spread: 1, bidDepth: 0 };
     if (tokenIds[0]) {
       try {
@@ -73,7 +74,7 @@ export async function fetchMarketBuckets(eventSlug) {
       } catch {}
     }
 
-    buckets.push({
+    outcomes.push({
       title: m.groupItemTitle || m.question,
       slug: m.slug,
       yesPrice: parseFloat(prices[0] || 0),
@@ -84,11 +85,17 @@ export async function fetchMarketBuckets(eventSlug) {
     });
   }
 
+  const marketType = (event.markets || []).length === 1 ? 'binary' : 'bucket';
+
   return {
     event: { title: event.title, slug: event.slug, volume: event.volume, endDate: event.endDate },
-    buckets,
+    outcomes,
+    marketType,
   };
 }
+
+// Backward compatibility
+export { fetchMarketData as fetchMarketBuckets };
 
 // ─── Probability Models ───
 
@@ -138,22 +145,22 @@ export function ensembleToBucketProbs(members, buckets) {
   }));
 }
 
-// ─── Example Model Function ───
+// ─── Example Model Functions ───
 
 /**
  * Example model function: poll-based probability model for politics markets.
  *
- * A modelFn receives the market buckets and returns { probabilities: Map<title, prob> }.
+ * A modelFn receives the market outcomes and returns { probabilities: Map<title, prob> }.
  * This example shows how to build one from polling data. Replace the hardcoded
  * poll data with a real API call (e.g., FiveThirtyEight, RealClearPolitics).
  *
  * Usage with analyzeEdge:
- *   const edges = await analyzeEdge(buckets, exampleModelFn);
+ *   const edges = await analyzeEdge(outcomes, exampleModelFn);
  *
- * @param {Array} buckets - market buckets from fetchMarketBuckets()
+ * @param {Array} outcomes - market outcomes from fetchMarketData()
  * @returns {{ probabilities: Map<string, number>, source: string }}
  */
-export async function exampleModelFn(buckets) {
+export async function exampleModelFn(outcomes) {
   // Step 1: Get your external data.
   // In production, fetch from a real API. Here we simulate poll data.
   const pollEstimate = 49.5;  // e.g., polling average says 49.5%
@@ -161,7 +168,7 @@ export async function exampleModelFn(buckets) {
 
   // Step 2: Parse bucket boundaries from titles.
   // Expects titles like "48-50%", "50-52%", ">54%", "<44%", etc.
-  const parsed = buckets.map(b => {
+  const parsed = outcomes.map(b => {
     const range = (b.title || '').match(/([\d.]+)\s*[-–]\s*([\d.]+)/);
     const gt = (b.title || '').match(/[>≥]\s*([\d.]+)/);
     const lt = (b.title || '').match(/[<≤]\s*([\d.]+)/);
@@ -199,18 +206,40 @@ export async function exampleModelFn(buckets) {
   return { probabilities, source: 'poll-based-example' };
 }
 
+/**
+ * Example model function for binary markets.
+ *
+ * A binary modelFn receives the market outcomes (single entry) and returns
+ * { probabilities: Map<title, prob> }. Replace the hardcoded probability
+ * with a real data-driven estimate.
+ *
+ * @param {Array} outcomes - market outcomes from fetchMarketData()
+ * @returns {{ probabilities: Map<string, number>, source: string }}
+ */
+export async function exampleBinaryModelFn(outcomes) {
+  // Step 1: Get your external data.
+  // In production, fetch from a real API (news, polls, on-chain data, etc.)
+  const modelProbability = 0.65;  // your estimate of P(YES)
+
+  // Step 2: Map to outcomes.
+  const probabilities = new Map();
+  probabilities.set(outcomes[0].title, modelProbability);
+
+  return { probabilities, source: 'binary-example' };
+}
+
 // ─── Edge Analysis ───
 
 /**
  * Core edge analysis: compare model probabilities to market prices
- * @param {Array} buckets - market buckets with yesPrice
+ * @param {Array} outcomes - market outcomes with yesPrice
  * @param {Function} modelFn - async function returning { probabilities: Map<title, prob> }
  * @returns {Array} ranked edges
  */
-export async function analyzeEdge(buckets, modelFn) {
-  const model = await modelFn(buckets);
+export async function analyzeEdge(outcomes, modelFn) {
+  const model = await modelFn(outcomes);
 
-  return buckets.map(b => {
+  return outcomes.map(b => {
     const modelProb = model.probabilities.get(b.title) || 0;
     const edge = modelProb - b.yesPrice;
     return {
@@ -284,16 +313,16 @@ async function main() {
   console.log('═══════════════════════════════════════\n');
 
   console.log(`Fetching market data: ${eventSlug}...`);
-  const { event, buckets } = await fetchMarketBuckets(eventSlug);
+  const { event, outcomes } = await fetchMarketData(eventSlug);
 
   console.log(`Event: ${event.title}`);
   console.log(`Volume: $${Math.round(parseFloat(event.volume || 0)).toLocaleString()}`);
-  console.log(`Buckets: ${buckets.length}\n`);
+  console.log(`Outcomes: ${outcomes.length}\n`);
 
   // Display current market state
   console.log('Bucket              | Market | Spread | Bid Depth | Volume');
   console.log('─'.repeat(65));
-  for (const b of buckets.sort((a, b) => b.yesPrice - a.yesPrice)) {
+  for (const b of outcomes.sort((a, b) => b.yesPrice - a.yesPrice)) {
     const title = (b.title || '').padEnd(20);
     const price = `${(b.yesPrice * 100).toFixed(1)}¢`.padStart(6);
     const spread = `${(b.spread * 100).toFixed(1)}¢`.padStart(6);
@@ -302,29 +331,53 @@ async function main() {
     console.log(`${title}| ${price} | ${spread} | ${depth} | ${vol}`);
   }
 
-  // ─── Boundary Detection ───
-  // For ranged/numeric buckets, detect when forecast could land near a boundary
-  const numericBuckets = buckets
-    .map(b => {
-      const m = (b.title || '').match(/([\.\d]+)/);
-      return m ? { ...b, numVal: parseFloat(m[1]) } : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.numVal - b.numVal);
+  // ─── Market-type-aware analysis ───
+  const marketType = outcomes.length === 1 ? 'binary' : 'bucket';
+  console.log(`\nMarket type: ${marketType === 'binary' ? 'Binary (YES/NO)' : `Bucket (${outcomes.length} outcomes)`}\n`);
 
-  if (numericBuckets.length >= 2) {
-    console.log('\n🎯 Boundary Analysis (adjacent bucket pairs):');
-    console.log('Pair                          | Combined | Boundary');
-    console.log('─'.repeat(55));
-    for (let i = 0; i < numericBuckets.length - 1; i++) {
-      const a = numericBuckets[i], b = numericBuckets[i + 1];
-      const combined = a.yesPrice + b.yesPrice;
-      const boundary = (a.numVal + b.numVal) / 2;
-      const pairLabel = ((a.title || '').slice(0, 12) + ' + ' + (b.title || '').slice(0, 12)).padEnd(30);
-      console.log(pairLabel + '| ' + (combined * 100).toFixed(1) + '¢'.padStart(6) + ' | ' + boundary.toFixed(1));
+  if (marketType === 'binary') {
+    const o = outcomes[0];
+    console.log('── Binary Market Analysis ──');
+    console.log(`  Market price (YES): ${(o.yesPrice * 100).toFixed(1)}¢`);
+    console.log(`  Implied probability: ${(o.yesPrice * 100).toFixed(1)}%`);
+    console.log(`  Best bid: ${(o.bestBid * 100).toFixed(1)}¢ | Best ask: ${(o.bestAsk * 100).toFixed(1)}¢`);
+    console.log(`  Spread: ${(o.spread * 100).toFixed(1)}¢ | Bid depth: $${o.bidDepth.toFixed(0)}`);
+    console.log('');
+    console.log('  To calculate edge:');
+    console.log('    1. Estimate P(YES) using your external data sources');
+    console.log('    2. Edge = P(YES) - market price');
+    console.log('    3. If edge > your threshold and spread < 4¢ → candidate trade');
+    console.log('    4. BUY YES if your P > market price, BUY NO if your P < (1 - market price)');
+    console.log('');
+    console.log('  Example:');
+    console.log('    Your model: P(YES) = 65%');
+    console.log(`    Market price: ${(o.yesPrice * 100).toFixed(1)}¢`);
+    console.log(`    Edge: ${(0.65 * 100 - o.yesPrice * 100).toFixed(1)}%`);
+  } else {
+    // ─── Boundary Detection ───
+    // For ranged/numeric buckets, detect when forecast could land near a boundary
+    const numericBuckets = outcomes
+      .map(b => {
+        const m = (b.title || '').match(/([\.\d]+)/);
+        return m ? { ...b, numVal: parseFloat(m[1]) } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.numVal - b.numVal);
+
+    if (numericBuckets.length >= 2) {
+      console.log('\n🎯 Boundary Analysis (adjacent bucket pairs):');
+      console.log('Pair                          | Combined | Boundary');
+      console.log('─'.repeat(55));
+      for (let i = 0; i < numericBuckets.length - 1; i++) {
+        const a = numericBuckets[i], b = numericBuckets[i + 1];
+        const combined = a.yesPrice + b.yesPrice;
+        const boundary = (a.numVal + b.numVal) / 2;
+        const pairLabel = ((a.title || '').slice(0, 12) + ' + ' + (b.title || '').slice(0, 12)).padEnd(30);
+        console.log(pairLabel + '| ' + (combined * 100).toFixed(1) + '¢'.padStart(6) + ' | ' + boundary.toFixed(1));
+      }
+      console.log('\n💡 Compare these combined costs against your model\'s probability estimates.');
+      console.log('   Use your external data to determine whether any pairs are mispriced.');
     }
-    console.log('\n💡 Compare these combined costs against your model\'s probability estimates.');
-    console.log('   Use your external data to determine whether any pairs are mispriced.');
   }
 
   console.log('\n💡 To calculate edge, pair this with a probability model.');
@@ -336,7 +389,8 @@ async function main() {
   console.log(JSON.stringify({
     analysisTime: new Date().toISOString(),
     event,
-    buckets: buckets.map(b => ({
+    marketType,
+    outcomes: outcomes.map(b => ({
       title: b.title, yesPrice: b.yesPrice, spread: b.spread,
       bidDepth: b.bidDepth, yesTokenId: b.yesTokenId,
     })),

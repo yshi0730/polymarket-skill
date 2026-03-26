@@ -55,6 +55,8 @@ For ranged markets (temperature, price, score), holding a single bucket is a con
 
 **Rule:** Let your probability model guide allocation across outcomes. If your model assigns meaningful probability to more than one bucket, your position sizing should reflect that.
 
+*Note: This lesson applies to bucket markets. For binary markets, position sizing is simpler — you have one outcome to size, guided by your edge magnitude and risk profile.*
+
 ## 11. Data Precision Matters
 Higher-precision data vs rounded public data can be the entire edge. If a market resolves by rounding a continuous value to an integer, accessing the un-rounded source gives you an information advantage.
 
@@ -78,3 +80,17 @@ When a prediction market divides a continuous variable (temperature, vote share,
 4. Look for mispricings — especially where the market's behavioral biases (anchoring on forecasts, neglecting tail outcomes) create gaps vs. your model
 
 This applies to weather, sports, politics, crypto, and any market where continuous values are bucketed into discrete outcomes.
+
+*Note: This lesson applies to bucket markets. For binary markets, structural inefficiency is simpler to detect — your model probability vs. market price is the entire analysis.*
+
+## 14. Binary Markets: Speed and Information Quality Win
+
+In binary markets (YES/NO), the edge is straightforward: your probability estimate vs. the market price. The challenge is that binary markets are often more efficient than bucket markets because the analysis is simpler for all participants.
+
+**Where binary edge comes from:**
+- **Faster information:** Getting news, data, or signals before the market prices them in
+- **Better models:** More accurate probability estimates from superior data or methodology
+- **Cross-market analysis:** Spotting inconsistencies between related binary markets
+- **Contrarian positioning:** Markets overreact to dramatic events and underreact to slow trends
+
+**Rule:** In binary markets, your edge decays faster because the market is simpler to analyze. Monitor your thesis continuously and exit quickly when the information advantage disappears.

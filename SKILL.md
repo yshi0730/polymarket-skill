@@ -52,18 +52,44 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 1. Read the relevant market-type doc from `references/market-types/` based on user preference
 2. Ask: **"What's your edge? What do you know that the market doesn't?"**
    - No edge = no trade. This is non-negotiable.
-3. Define entry conditions:
-   - Min edge threshold (model probability - market price)
+
+#### For Binary Markets (YES/NO)
+
+Binary markets have a single question with two outcomes. Strategy is simpler:
+
+3. Estimate P(YES) using external data sources
+4. Edge = P(YES) - market price. If negative, consider the NO side: edge = P(NO) - NO price
+5. Define entry conditions:
+   - Min edge threshold (your probability - market price)
    - Min volume / max spread filters
+   - Confidence level in your estimate
+6. Define exit conditions:
+   - Take-profit: market price moves toward your model probability (sell when remaining edge < threshold)
+   - Stop-loss: new information invalidates your thesis
+   - Time-based: exit if still uncertain close to resolution
+
+#### For Bucket Markets (multiple outcomes)
+
+Bucket markets divide a continuous variable (temperature, vote share, price) into discrete ranges. Strategy requires a full probability distribution:
+
+3. Build a probability model for the underlying variable using external data
+4. Map your model's distribution onto the market's buckets
+5. Define entry conditions:
+   - Min edge threshold per outcome (model probability - market price)
+   - Consider multi-outcome positions if your model spreads probability across buckets
+   - Min volume / max spread filters per outcome
    - Timing rules (closer to resolution = less drift risk)
-4. Define exit conditions:
-   - Take-profit: bid > model probability (sell EV > hold EV)
-   - Stop-loss: forecast drift outside position bucket
+6. Define exit conditions:
+   - Take-profit: bid > model probability for that outcome (sell EV > hold EV)
+   - Stop-loss: forecast drift outside your position
    - Emergency: floor price 0.01 when position is dead
    - Time-based: force exit N hours before resolution if uncertain
-5. Position sizing from risk profile (read `references/risk-profiles.md`)
-6. Write strategy to `polymarket/strategy.json` using `assets/strategy-template.json` as base
-7. Show user the complete strategy card, get confirmation
+
+#### Shared (both market types)
+
+7. Position sizing from risk profile (read `references/risk-profiles.md`)
+8. Write strategy to `polymarket/strategy.json` using `assets/strategy-template.json` as base
+9. Show user the complete strategy card, get confirmation
 
 ### Phase 3: Build & Deploy
 
@@ -77,14 +103,29 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 ### Phase 4: Live Trading
 
 1. Scanner finds opportunities → present as **decision card**:
+
+   **Binary market card:**
    ```
    📊 OPPORTUNITY: [Market Name]
-   Edge: +12.3% (model 47% vs market 35%)
+   Type: Binary (YES/NO)
+   Edge: +15.0% (model 65% vs market 50%)
+   Volume: $120,000 | Spread: 1.5¢
+   Data: [source + key datapoint]
+   Suggested: BUY YES $25 @ 0.50
+   Risk: [what could go wrong]
+   ```
+
+   **Bucket market card:**
+   ```
+   📊 OPPORTUNITY: [Market Name]
+   Type: Bucket (8 outcomes)
+   Target: [outcome name] — edge +12.3% (model 47% vs market 35%)
    Volume: $45,000 | Spread: 2¢
    Data: [source + key datapoint]
    Suggested: BUY YES $20 @ 0.35
    Risk: [what could go wrong]
    ```
+
 2. User confirms → `order-executor.mjs` places limit order
 3. `position-manager.mjs` monitors continuously:
    - Forecast drift → alert or auto-exit
@@ -101,15 +142,19 @@ POLYMARKET_PASSPHRASE   # CLOB API passphrase
 
 ## Developing Your Strategy
 
-The skill doesn't prescribe a single strategy — it helps you **build and test your own edge thesis** interactively. The workflow (Phase 2) guides you through:
+The skill supports two market structures — adapt your approach accordingly:
 
-1. **Identify your informational edge** — what do you know that the market doesn't? This could come from better data sources, faster updates, cross-market analysis, or domain expertise.
-2. **Model the probability** — use external data to estimate the true probability of each outcome. The `edge-analyzer.mjs` provides a pluggable framework for probability models.
+**Binary markets** (Will X happen? YES/NO): Estimate a single probability. Your edge is the gap between your estimate and the market price. Focus on finding better or faster information than other participants.
+
+**Bucket markets** (What range will X fall in?): Build a full probability distribution. Your edge comes from a more accurate distribution than the market implies. The `edge-analyzer.mjs` shows market prices alongside adjacent-pair analysis to help you spot where the market's distribution diverges from yours.
+
+For both types, the process is:
+
+1. **Identify your informational edge** — what do you know that the market doesn't? Better data, faster updates, domain expertise, or cross-market analysis.
+2. **Model the probability** — use external data to estimate true outcome probabilities. The `edge-analyzer.mjs` provides a pluggable framework with example model functions for both binary and bucket markets.
 3. **Compare to market prices** — edge = your probability - market price. No edge = no trade.
 4. **Define entry/exit rules** — codify your thesis into repeatable, testable conditions.
 5. **Backtest and iterate** — use `data-logger.mjs` to collect market snapshots and validate your model before risking capital.
-
-For bucket-based markets (temperature ranges, vote share brackets, price ranges, over/unders), pay special attention to how the market distributes probability across outcomes vs. what your model says. Markets with discrete buckets over continuous variables often have structural inefficiencies worth investigating.
 
 Read the relevant `references/market-types/` guide for domain-specific edge sources, and `references/data-sources.md` for where to find the data that powers your model.
 

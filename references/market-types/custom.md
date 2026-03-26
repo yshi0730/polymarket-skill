@@ -1,5 +1,7 @@
 # Custom Market Types — Framework
 
+**First, determine the market structure:** Is it binary (YES/NO) or bucket (multiple outcomes)? This shapes your entire analysis approach. Binary markets need a single probability estimate; bucket markets need a full probability distribution.
+
 For any market type not covered by specific guides:
 
 ## Step 1: Understand Resolution

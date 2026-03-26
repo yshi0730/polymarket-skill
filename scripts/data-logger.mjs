@@ -13,7 +13,8 @@
  *   eventSlug: string,
  *   eventTitle: string,
  *   totalVolume: number,
- *   buckets: [{ title, yesPrice, volume, bestBid, bestAsk, spread, bidDepth }],
+ *   marketType: "binary" | "bucket",
+ *   outcomes: [{ title, yesPrice, volume, bestBid, bestAsk, spread, bidDepth }],
  * }
  *
  * Usage:
@@ -57,7 +58,7 @@ export async function logMarketSnapshot(eventSlug) {
   if (!events?.[0]) return null;
 
   const event = events[0];
-  const buckets = [];
+  const outcomes = [];
 
   for (const m of event.markets || []) {
     const prices = JSON.parse(m.outcomePrices || '[]');
@@ -78,7 +79,7 @@ export async function logMarketSnapshot(eventSlug) {
       } catch {}
     }
 
-    buckets.push({
+    outcomes.push({
       title: m.groupItemTitle || m.question,
       yesPrice: parseFloat(prices[0] || 0),
       volume: parseFloat(m.volume || 0),
@@ -86,13 +87,15 @@ export async function logMarketSnapshot(eventSlug) {
     });
   }
 
+  const marketType = outcomes.length === 1 ? 'binary' : 'bucket';
   const entry = {
     ts: new Date().toISOString(),
     eventSlug: event.slug,
     eventTitle: event.title,
     totalVolume: parseFloat(event.volume || 0),
     endDate: event.endDate,
-    buckets,
+    marketType,
+    outcomes,
   };
 
   ensureDir();
@@ -146,7 +149,7 @@ async function main() {
       const entry = await logMarketSnapshot(slug);
       if (entry) {
         logged++;
-        console.log(`  ✓ ${slug} (${entry.buckets.length} buckets)`);
+        console.log(`  ✓ ${slug} (${entry.marketType}, ${entry.outcomes.length} outcome${entry.outcomes.length === 1 ? '' : 's'})`);
       }
     } catch (e) {
       console.error(`  ✗ ${slug}: ${e.message}`);

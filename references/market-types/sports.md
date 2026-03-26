@@ -1,5 +1,7 @@
 # Sports Markets
 
+**Market structure:** Both binary (Will team X win?) and bucket (over/under ranges, margin of victory, player stats).
+
 ## Edge Sources
 1. **Injury information** — earlier access to injury news = edge
 2. **Line movement** — sharp sportsbook lines move before prediction markets

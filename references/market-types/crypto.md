@@ -1,5 +1,7 @@
 # Crypto Markets
 
+**Market structure:** Mostly binary (Will BTC hit $X by date?) with some bucket markets (price ranges, percentage changes).
+
 ## Edge Sources
 1. **On-chain data** — whale movements, exchange inflows/outflows
 2. **Funding rates** — perpetual swap funding indicates positioning

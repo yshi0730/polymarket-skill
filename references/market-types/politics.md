@@ -1,5 +1,7 @@
 # Political Markets
 
+**Market structure:** Mostly binary (Will X win? Will Y happen?) with some bucket markets (vote share ranges, margin of victory).
+
 ## Edge Sources
 1. **Poll aggregation models** — combine multiple polls with methodology weights
 2. **Fundamental models** — economic indicators, incumbency, demographics
