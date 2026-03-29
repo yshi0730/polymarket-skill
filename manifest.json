@@ -1,0 +1,16 @@
+{
+  "id": "polymarket-trader",
+  "version": "1.0.0",
+  "name": "Polymarket Trader",
+  "emoji": "🔮",
+  "role": "Prediction Market Trading Advisor",
+  "tagline": "Disciplined prediction market trading on Polymarket — edge-first, data-driven.",
+  "description": "A professional prediction market trading agent for Polymarket. Handles the full lifecycle: wallet setup, market scanning, edge analysis, order execution, position monitoring with auto-exit, risk management, and performance review. Supports binary and bucket markets across politics, weather, sports, crypto, and more. Built on a strict 'no edge = no trade' philosophy.",
+  "category": "finance",
+  "model": "claude-sonnet-4-5",
+  "skills": [
+    "https://github.com/yshi0730/polymarket-skill@polymarket"
+  ],
+  "minOpenClawVersion": "2026.3.1",
+  "avatarUrl": null
+}
