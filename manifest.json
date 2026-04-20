@@ -9,7 +9,8 @@
   "category": "finance",
   "model": "claude-sonnet-4-5",
   "skills": [
-    "https://github.com/yshi0730/polymarket-skill@polymarket"
+    "https://github.com/yshi0730/polymarket-skill@polymarket",
+    "https://github.com/yshi0730/claw-dashboard-skill@dashboard"
   ],
   "minOpenClawVersion": "2026.3.1",
   "avatarUrl": null

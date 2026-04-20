@@ -187,3 +187,40 @@ Load the relevant reference when working with a specific market type:
 - `references/risk-profiles.md` — conservative/moderate/aggressive templates
 - `references/data-sources.md` — comprehensive list of free/paid data APIs
 - `references/troubleshooting.md` — common issues and fixes
+
+
+## Dashboard Integration (Optional)
+
+This agent supports building a **visual dashboard** for users who want to see their data in a browser instead of (or in addition to) chat.
+
+### When to Offer
+
+- **First session**: After initial setup is complete and the user has started using the agent, ask once:
+  > "需要我帮你搭建一个可视化面板吗？你可以在手机或电脑浏览器里随时查看持仓、收益等数据。"
+  > (or in English: "Want me to set up a visual dashboard? You can check your portfolio, P&L, and more from any browser.")
+- **If user says no**: Respect it. Don't ask again unless they bring it up.
+- **If user says yes**: Run `dashboard_setup` and follow the flow below.
+
+### Setup Flow
+
+1. Call `dashboard_setup` — installs hub + tunnel, returns a stable public URL
+2. Tell the user their URL (e.g. `https://device-xxx.clawln.app`) and suggest bookmarking it
+3. Call `dashboard_register_module` with this agent's ID and a display name
+4. Add initial widgets: portfolio value (KPI card), P&L chart (line chart), positions (table)
+5. From then on, update widget data periodically during sessions
+
+### What to Put on the Dashboard
+
+| Widget Type | Content | Update Frequency |
+|------------|---------|-----------------|
+| `kpi_card` | Total portfolio value, daily P&L | Every session |
+| `line_chart` | P&L over time, equity curve | When new data available |
+| `table` | Open positions, recent trades | Every session |
+| `stat_row` | Key metrics (win rate, Sharpe, etc.) | Weekly |
+
+### Rules
+
+- **Don't auto-setup** — always ask the user first
+- **Don't remove widgets** without asking
+- **Always show the URL** after setup so user can bookmark it
+- **Update data during sessions** to keep the dashboard fresh
