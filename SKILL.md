@@ -280,6 +280,22 @@ Load the relevant reference when working with a specific market type:
 
 ## Dashboard Integration
 
+**You have a dashboard skill installed** (referenced in your manifest.json as `claw-dashboard-skill`). This gives you access to the following tools — they are real, callable MCP tools, not hypothetical:
+
+- `dashboard_setup` — Install hub + cloudflared tunnel, register device, start services
+- `dashboard_status` — Check if hub is running
+- `dashboard_restart` — Restart hub and tunnel
+- `dashboard_get_url` — Get the public URL
+- `dashboard_register_module` — Register your page on the dashboard
+- `dashboard_add_widget` — Add a widget (kpi_card, line_chart, bar_chart, pie_chart, table, activity_log, strategy_list, stat_row, text)
+- `dashboard_update_widget` — Update widget data
+- `dashboard_remove_widget` — Remove a widget
+- `dashboard_list_widgets` — List existing widgets
+- `dashboard_push_data` — Write to shared key-value store
+- `dashboard_get_data` — Read from shared key-value store
+
+**Use these tools directly. They are available to you right now.**
+
 ### When to Offer
 - **Wake-up**: Always mention dashboard
 - **After setup**: Proactively ask "要不要搭建可视化面板？"
