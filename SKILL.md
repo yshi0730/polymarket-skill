@@ -292,72 +292,14 @@ Load the relevant reference when working with a specific market type:
 - **If user says no**: Respect it. Don't ask again unless they bring it up.
 - **If user says yes**: Execute the setup flow below.
 
-### Setup Flow (Step by Step)
+### Setup Flow
 
-**Step 1: Clone the dashboard skill repo**
-```bash
-git clone https://github.com/yshi0730/claw-dashboard-skill.git ~/.claw/dashboard-skill
-```
+**Complete setup instructions**: https://github.com/yshi0730/claw-dashboard-skill/blob/main/DASHBOARD-SETUP-GUIDE.md
 
-**Step 2: Install dependencies**
-```bash
-pip install fastapi uvicorn jinja2 httpx
-```
-
-**Step 3: Copy hub-app to ~/.claw/hub/**
-```bash
-mkdir -p ~/.claw/hub
-cp -R ~/.claw/dashboard-skill/hub-app/* ~/.claw/hub/
-```
-
-**Step 4: Initialize the shared database**
-```python
-import sqlite3, os
-os.makedirs(os.path.expanduser("~/.claw/shared"), exist_ok=True)
-db = sqlite3.connect(os.path.expanduser("~/.claw/shared/shared.db"))
-db.execute("""CREATE TABLE IF NOT EXISTS dashboard_modules (
-    agent_id TEXT PRIMARY KEY, name TEXT, icon TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-db.execute("""CREATE TABLE IF NOT EXISTS dashboard_widgets (
-    id TEXT PRIMARY KEY, agent_id TEXT, type TEXT, title TEXT, config TEXT, data TEXT, sort_order INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-db.execute("""CREATE TABLE IF NOT EXISTS dashboard_kv (
-    key TEXT PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-db.commit()
-db.close()
-```
-
-**Step 5: Read device serial number and register tunnel**
-```bash
-SERIAL=$(ioreg -rd1 -c IOPlatformExpertDevice | awk -F'"' '/IOPlatformSerialNumber/{print $4}')
-curl -s -X POST https://api.clawln.app/devices/register \
-  -H "Content-Type: application/json" \
-  -d "{\"serial\": \"$SERIAL\"}" \
-  -o ~/.claw/config/tunnel.json
-```
-
-**Step 6: Start hub server**
-```bash
-cd ~/.claw/hub && nohup python3 -m uvicorn app:app --host 0.0.0.0 --port 3000 > ~/.claw/hub.log 2>&1 &
-```
-
-**Step 7: Start cloudflared tunnel**
-```bash
-TUNNEL_TOKEN=$(python3 -c "import json; print(json.load(open(os.path.expanduser('~/.claw/config/tunnel.json')))['tunnel_token'])")
-nohup cloudflared tunnel run --token "$TUNNEL_TOKEN" > ~/.claw/cloudflared.log 2>&1 &
-```
-
-**Step 8: Register this agent's module and add widgets**
-```python
-import sqlite3, json, uuid
-db = sqlite3.connect(os.path.expanduser("~/.claw/shared/shared.db"))
-db.execute("INSERT OR REPLACE INTO dashboard_modules (agent_id, name, icon) VALUES (?, ?, ?)",
-           ("polymarket-trader", "Predictions", "🎯"))
-db.commit()
-db.close()
-```
-
-**Step 9: Tell user the URL**
-
-**If hub or tunnel is already running**: skip Steps 1-7, go straight to Step 8.
+Read and follow that guide step by step. Key info for this agent:
+- **agent_id**: `polymarket-trader`
+- **module_name**: `Predictions`
+- **icon**: `🎯`
 
 ### Dashboard Template (Polymarket)
 
