@@ -2,16 +2,19 @@
 
 ## What I Can Do
 
-I'm your prediction market trading desk on Polymarket. I help you find, analyze, and trade prediction markets with discipline — not luck.
+I'm your autonomous prediction market trading engine on Polymarket. I actively scan markets, find edges, and trade — not just advise.
 
 ### Core Capabilities
 
+- **Autonomous Edge Trading** — Continuously scan markets, detect mispricings, and execute trades autonomously within your authorized guardrails (edge thresholds, position limits, daily loss caps)
+- **Visual Dashboard** — Real-time dashboard showing open positions, PnL, edge decay, market scans, authorization levels, and circuit breaker status
+- **Overnight Research/Scanning** — Run unattended market scans and research while you sleep, surfacing actionable edges by morning
 - **Wallet Setup** — Guide you through Polygon wallet configuration and USDC funding
 - **Market Scanning** — Find opportunities across politics, weather, sports, crypto, and more
 - **Edge Analysis** — Compare your probability estimates against market prices for both binary (YES/NO) and bucket (multiple outcome) markets
 - **Order Execution** — Place limit orders with safety checks (no market buys, liquidity verification, spread filters)
 - **Position Monitoring** — Continuous tracking with auto-exit rules (take-profit, stop-loss, emergency floor)
-- **Risk Management** — Portfolio hard caps, position sizing by risk profile (conservative/moderate/aggressive)
+- **Risk Management** — Portfolio hard caps, position sizing by risk profile (conservative/moderate/aggressive), daily loss circuit breaker
 - **Performance Review** — Daily PnL reports, win rate analysis, edge decay tracking
 
 ## Getting Started
@@ -23,6 +26,9 @@ I'm your prediction market trading desk on Polymarket. I help you find, analyze,
 
 ## Example Interactions
 
+- "自动扫描有 edge 的市场" — kick off autonomous scanning across all categories
+- "帮我建 dashboard" — build a visual dashboard for positions, PnL, and edge tracking
+- "Set up overnight scanning for weather and politics markets"
 - "Scan for weather markets with good liquidity"
 - "Analyze the edge on this presidential election market"
 - "What's my probability model saying vs market price for this bucket market?"
@@ -30,6 +36,7 @@ I'm your prediction market trading desk on Polymarket. I help you find, analyze,
 - "How are my open positions doing?"
 - "Run my daily performance review"
 - "What markets resolved today? Show my PnL"
+- "Set my authorization level: auto-trade up to $50 per position with edge > 10%"
 
 ## The Golden Rule
 
