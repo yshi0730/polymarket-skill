@@ -280,38 +280,84 @@ Load the relevant reference when working with a specific market type:
 
 ## Dashboard Integration
 
-**You have a dashboard skill installed.** DO NOT search for dashboard tools or skills — they are already available to you.
+**You can build a visual dashboard** for users to monitor their portfolio from any browser/phone.
 
-- **Skill repo**: https://github.com/yshi0730/claw-dashboard-skill
-- **Skill name in manifest.json**: `claw-dashboard-skill@dashboard`
-- **DO NOT** search for other dashboard solutions, install npm packages, or write HTML yourself
-- **DO** use the tools listed below directly — they are real, callable MCP tools, already loaded:
-
-- `dashboard_setup` — Install hub + cloudflared tunnel, register device, start services
-- `dashboard_status` — Check if hub is running
-- `dashboard_restart` — Restart hub and tunnel
-- `dashboard_get_url` — Get the public URL
-- `dashboard_register_module` — Register your page on the dashboard
-- `dashboard_add_widget` — Add a widget (kpi_card, line_chart, bar_chart, pie_chart, table, activity_log, strategy_list, stat_row, text)
-- `dashboard_update_widget` — Update widget data
-- `dashboard_remove_widget` — Remove a widget
-- `dashboard_list_widgets` — List existing widgets
-- `dashboard_push_data` — Write to shared key-value store
-- `dashboard_get_data` — Read from shared key-value store
-
-**Use these tools directly. They are available to you right now.**
+- **DO NOT** search for dashboard tools, install random npm packages, or write HTML from scratch
+- **DO** follow the exact steps below — the dashboard framework is at https://github.com/yshi0730/claw-dashboard-skill
 
 ### When to Offer
-- **Wake-up**: Always mention dashboard
-- **After setup**: Proactively ask "要不要搭建可视化面板？"
 
-### Setup Flow
+- **Wake-up / self-introduction**: Always mention dashboard as a capability
+- **After initial setup completes**: Proactively ask "要不要搭建可视化面板？"
+- **If user says no**: Respect it. Don't ask again unless they bring it up.
+- **If user says yes**: Execute the setup flow below.
 
-1. Call `dashboard_setup` — installs hub + cloudflared, registers device, returns stable public URL
-2. Tell user the URL (e.g. `https://device-xxx.clawln.app`), suggest bookmarking
-3. Call `dashboard_register_module(agent_id="polymarket-trader", name="Predictions", icon="🎯")`
-4. Execute the **Dashboard Template** below — create all widgets in order
-5. Tell user: "Dashboard 已搭建好，打开链接即可查看。"
+### Setup Flow (Step by Step)
+
+**Step 1: Clone the dashboard skill repo**
+```bash
+git clone https://github.com/yshi0730/claw-dashboard-skill.git ~/.claw/dashboard-skill
+```
+
+**Step 2: Install dependencies**
+```bash
+pip install fastapi uvicorn jinja2 httpx
+```
+
+**Step 3: Copy hub-app to ~/.claw/hub/**
+```bash
+mkdir -p ~/.claw/hub
+cp -R ~/.claw/dashboard-skill/hub-app/* ~/.claw/hub/
+```
+
+**Step 4: Initialize the shared database**
+```python
+import sqlite3, os
+os.makedirs(os.path.expanduser("~/.claw/shared"), exist_ok=True)
+db = sqlite3.connect(os.path.expanduser("~/.claw/shared/shared.db"))
+db.execute("""CREATE TABLE IF NOT EXISTS dashboard_modules (
+    agent_id TEXT PRIMARY KEY, name TEXT, icon TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+db.execute("""CREATE TABLE IF NOT EXISTS dashboard_widgets (
+    id TEXT PRIMARY KEY, agent_id TEXT, type TEXT, title TEXT, config TEXT, data TEXT, sort_order INTEGER, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+db.execute("""CREATE TABLE IF NOT EXISTS dashboard_kv (
+    key TEXT PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+db.commit()
+db.close()
+```
+
+**Step 5: Read device serial number and register tunnel**
+```bash
+SERIAL=$(ioreg -rd1 -c IOPlatformExpertDevice | awk -F'"' '/IOPlatformSerialNumber/{print $4}')
+curl -s -X POST https://api.clawln.app/devices/register \
+  -H "Content-Type: application/json" \
+  -d "{\"serial\": \"$SERIAL\"}" \
+  -o ~/.claw/config/tunnel.json
+```
+
+**Step 6: Start hub server**
+```bash
+cd ~/.claw/hub && nohup python3 -m uvicorn app:app --host 0.0.0.0 --port 3000 > ~/.claw/hub.log 2>&1 &
+```
+
+**Step 7: Start cloudflared tunnel**
+```bash
+TUNNEL_TOKEN=$(python3 -c "import json; print(json.load(open(os.path.expanduser('~/.claw/config/tunnel.json')))['tunnel_token'])")
+nohup cloudflared tunnel run --token "$TUNNEL_TOKEN" > ~/.claw/cloudflared.log 2>&1 &
+```
+
+**Step 8: Register this agent's module and add widgets**
+```python
+import sqlite3, json, uuid
+db = sqlite3.connect(os.path.expanduser("~/.claw/shared/shared.db"))
+db.execute("INSERT OR REPLACE INTO dashboard_modules (agent_id, name, icon) VALUES (?, ?, ?)",
+           ("polymarket-trader", "Predictions", "🎯"))
+db.commit()
+db.close()
+```
+
+**Step 9: Tell user the URL**
+
+**If hub or tunnel is already running**: skip Steps 1-7, go straight to Step 8.
 
 ### Dashboard Template (Polymarket)
 
