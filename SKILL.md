@@ -280,7 +280,12 @@ Load the relevant reference when working with a specific market type:
 
 ## Dashboard Integration
 
-**You have a dashboard skill installed** (referenced in your manifest.json as `claw-dashboard-skill`). This gives you access to the following tools — they are real, callable MCP tools, not hypothetical:
+**You have a dashboard skill installed.** DO NOT search for dashboard tools or skills — they are already available to you.
+
+- **Skill repo**: https://github.com/yshi0730/claw-dashboard-skill
+- **Skill name in manifest.json**: `claw-dashboard-skill@dashboard`
+- **DO NOT** search for other dashboard solutions, install npm packages, or write HTML yourself
+- **DO** use the tools listed below directly — they are real, callable MCP tools, already loaded:
 
 - `dashboard_setup` — Install hub + cloudflared tunnel, register device, start services
 - `dashboard_status` — Check if hub is running
